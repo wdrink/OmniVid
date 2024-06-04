@@ -1,0 +1,144 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: video_blip2
+  model_type: omnicaption_bartbase
+  load_finetuned: False
+  use_grad_checkpoint: False
+  vit_model: "videoswin-B"
+  vit_precision: "fp32"
+  freeze_vit: False
+  init_2d_patch_embed: True
+  init_3d_patch_embed: False
+  freeze_qformer: False
+  freeze_llm: False
+
+  cross_frame_fusion: "early_full"
+  use_iou_loss: False
+  iou_loss_weight: 1.0
+
+  template_size: 224
+  template_boundary: 0.0
+
+  # box_in_query: True
+  # language_in_query: True
+
+
+datasets:
+  vis_root_train: [
+    "/path_to_your_dataset/TrackingNet",
+    "/path_to_your_dataset/LaSOT",
+    "/path_to_your_dataset/GOT10K",
+  ]
+  ann_paths_train: [
+    [
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train0_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train1_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train2_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train3_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train4_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train5_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train6_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train7_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train8_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train9_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train10_blip2query.json",
+      "/path_to_your_dataset/TrackingNet/omni_trackingnet_train11_blip2query.json",
+    ],
+    [
+      "/path_to_your_dataset/LaSOT/omni_lasot_train_blip2query.json",
+    ],
+    [
+      "/path_to_your_dataset/GOT10K/omni_got10k_train_blip2query.json",
+    ],
+  ]
+
+  vis_root_val: [
+    "/path_to_your_dataset/TrackingNet",
+  ]
+
+  ann_paths_val: [
+    ["/path_to_your_dataset/TrackingNet/omni_trackingnet_test_blip2query.json"]
+  ]
+  tokenize_in_dataloader: True
+  fps: 1
+  random_temporal_crop_proba: 0.0 # 0 for no random temporal crop, 1 for always random temporal crop
+
+  # video config
+  input_length: 2
+  image_size: 224
+
+  use_randaug: True
+  with_sen_mr: False
+
+  # text config
+  tokenizer: "facebook/bart-base"
+  num_bins: 200 # follow vid2seq
+  num_box_bins: 1000 # follow pix2seq-v2
+  context_len: 256
+  context_len_prompt: 50
+
+  fix_size: False
+  strong_aug: False
+
+  crop_enabled: False
+  crop_type: "relative_range"
+  crop_size: 0.9
+  sampling_frame_range: 200
+  sampling_interval: 1
+
+  random_flip: "horizontal"
+  augmentations: ["brightness"]
+
+  box_in_prompt: True
+  language_in_prompt: True
+  score_threshold: 0.0
+  p_use_language: 0.0
+  min_size_train: [480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800]
+  min_size_test: 518  
+
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  # warmup_lr: 1e-8
+  # warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 20
+
+  # max_epoch: 5
+  batch_size_train: 1
+  batch_size_eval: 1
+  accum_grad_iters: 1
+
+  max_len: 50
+  min_len: 3
+  num_beams: 3
+
+  worker: 4
+  seed: 42
+  output_dir: "./videoblip2_bart_trackingnetsot"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate_type: "sot_trackingnet"
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  test_splits: ["val"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+
+  
+  dvp_anet_ann_path: ["/path_to_your_dataset/activitynet/val_1.json", "/path_to_your_dataset/activitynet/val_2.json"]
+  ar_k700_ann_path: "/path_to_your_dataset/kinetics400_256/kinetics_400_labels.csv"
+  cc_msrvtt_ann_path: "/path_to_your_dataset/MSR-VTT/msrvtt_caption_cocofmt_test.json"

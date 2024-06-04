@@ -1,0 +1,112 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: video_blip2
+  model_type: omnicaption_bartbase
+  load_finetuned: False
+  use_grad_checkpoint: True
+  vit_model: "videoswin-B"
+  vit_precision: "fp32"
+  freeze_vit: False
+  freeze_qformer: False
+  freeze_llm: False
+  video_backbone_pretrained: "k600"
+  
+  
+
+  cross_frame_fusion: "late"
+  temporal_depth: 4
+  temporal_downrate: 1
+
+  modeling_difference: False
+  language_in_query: False
+  vl_fuse: False
+  vl_fuse_layer: 4
+  use_fused_language_embeddings: True
+
+
+datasets:
+  vis_root_train: [
+    "/path_to_your_dataset/activitynet",
+  ]
+  ann_paths_train: [
+    ["/path_to_your_dataset/activitynet/omni_anet_dvp_train.json"]
+  ]
+
+  vis_root_val: [
+    "/path_to_your_dataset/activitynet",
+  ]
+
+  ann_paths_val: [
+    ["/path_to_your_dataset/activitynet/omni_anet_dvp_val1.json", "/path_to_your_dataset/activitynet/omni_anet_dvp_val1.json"]
+  ]
+  tokenize_in_dataloader: True
+  fps: 1
+  fix_fps: True
+  random_temporal_crop_proba: 0.0 # 0 for no random temporal crop, 1 for always random temporal crop
+
+  # video config
+  input_length: 160
+  image_size: 224
+
+  # supervise_with_clipwise_sequence: True
+  # clip_length: 32
+  use_event_counter: True
+  max_segments: 30
+  time_triplet: "center_duration_cat"
+
+  use_randaug: True
+  with_sen_mr: False
+  num_augs: 9
+  
+  # text config
+  tokenizer: "facebook/bart-base"
+  num_bins: 300 # follow vid2seq
+  num_iou_bins: 100
+
+  context_len: 256 # follow vid2seq finetune, pretrain is 1000
+  context_len_prompt: 50
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 5e-6
+  min_lr: 0
+  #warmup_lr: 1e-8
+  #warmup_steps: 100
+  weight_decay: 0.05
+  max_epoch: 20
+
+  # max_epoch: 5
+  batch_size_train: 1
+  batch_size_eval: 1
+  accum_grad_iters: 1
+
+  max_len: 256
+  min_len: 3
+  num_beams: 3
+
+  worker: 0
+  seed: 42
+  output_dir: "./videoblip2_dvp_anet_bs8_epoch20_lr5e-6_fps1_160frms_down1_late4_counter_cd_k600_aug9"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate_type: "dvp_anet"
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  test_splits: ["val"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+
+  dvp_anet_ann_path: ["/path_to_your_dataset/activitynet/val_1.json", "/path_to_your_dataset/activitynet/val_2.json"]
+  ar_k700_ann_path: "/path_to_your_dataset/k700-2020/kinetics_700_labels.csv"
+  cc_msrvtt_ann_path: "/path_to_your_dataset/MSR-VTT/msrvtt_caption_cocofmt_test.json"

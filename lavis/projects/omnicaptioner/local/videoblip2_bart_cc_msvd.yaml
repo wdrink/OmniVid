@@ -1,0 +1,117 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: video_blip2
+  model_type: omnicaption_bartbase
+  load_finetuned: False
+  use_grad_checkpoint: True
+  vit_model: "videoswin-B"
+  vit_precision: "fp32"
+  freeze_vit: False
+  freeze_qformer: False
+  freeze_llm: False
+
+  
+
+  cross_frame_fusion: "late"
+  temporal_depth: 4
+  temporal_downrate: 1
+
+  modeling_difference: False
+  language_in_query: False
+  vl_fuse: False
+  vl_fuse_layer: 4
+  use_fused_language_embeddings: True
+
+
+datasets:
+  vis_root_train: [
+    "/path_to_your_dataset/MSVD",
+  ]
+  ann_paths_train: [
+    ["/path_to_your_dataset/MSVD/omni_msvd_train.json"]
+  ]
+
+  vis_root_val: [
+    "/path_to_your_dataset/MSVD",
+  ]
+
+  ann_paths_val: [
+    ["/path_to_your_dataset/MSVD/omni_msvd_test.json"]
+  ]
+  tokenize_in_dataloader: True
+  fps: 6
+  fix_fps: False
+
+  time_triplet: "start_end_cat"
+  random_temporal_crop_proba: 1.0 # 0 for no random temporal crop, 1 for always random temporal crop
+  use_crop1: False
+
+  # video config
+  input_length: 32
+  window_stride: 16
+  forced_pos_neg_sampling: True
+  forced_start_mid_end_sampling: False
+  num_iou_bins: 100
+  no_pred_cls: True
+  p_encourage_pos: 0.2
+
+  image_size: 224
+  # num_frms_per_clip: 4
+  # clip_stride: 2
+
+  use_randaug: True
+  with_sen_mr: False
+
+  # firstbin_sample_ratio: 0.02
+
+  # text config
+  tokenizer: "facebook/bart-base"
+  num_bins: 300 # follow vid2seq
+
+  context_len: 256 # follow vid2seq finetune, pretrain is 1000
+  context_len_prompt: 50
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  #warmup_lr: 1e-8
+  #warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 20
+
+  # max_epoch: 5
+  batch_size_train: 1
+  batch_size_eval: 1
+  accum_grad_iters: 1
+
+  max_len: 256
+  min_len: 3
+  num_beams: 3
+
+  worker: 8
+  seed: 42
+  output_dir: "./videoblip2_bart_ccmsvd"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate_type: "cc_msrvtt"
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  test_splits: ["val"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+
+  dvp_anet_ann_path: ["/path_to_your_dataset/activitynet/val_1.json", "/path_to_your_dataset/activitynet/val_2.json"]
+  ar_k700_ann_path: "/path_to_your_dataset/k700-2020/kinetics_700_labels.csv"
+  cc_msrvtt_ann_path: "/path_to_your_dataset/MSVD/msvd_caption_cocofmt_test.json"

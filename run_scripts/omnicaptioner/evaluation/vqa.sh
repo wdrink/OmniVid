@@ -1,0 +1,1 @@
+python3 -m torch.distributed.run --nproc_per_node=8 --master_port 42945 evaluate.py --cfg-path ./lavis/projects/omnicaptioner/local/videoblip2_bart_qa.yaml --options model.pretrained "path_to_checkpoint" run.output_dir "./vqa384_beam1_1-5" datasets.image_size 384 run.batch_size_eval 2 run.num_beams 1 run.min_len 1 run.max_len 5

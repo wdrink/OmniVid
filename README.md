@@ -26,9 +26,13 @@ class="center">
 
 Inspired by this, we seek to unify the output space of video understanding tasks by using languages as labels and additionally introducing *time* and *box* tokens. In this way, a variety of video tasks could be formulated as video-grounded token generation. This enables us to address various types of video tasks, including classification (such as action recognition), captioning (covering clip captioning, video question answering, and dense video captioning), and localization tasks (such as visual object tracking) within a fully shared encoder-decoder architecture, following a generative framework. Through comprehensive experiments, we demonstrate such a simple and straightforward idea is quite effective and can achieve state-of-the-art or competitive results on seven video benchmarks, providing a novel perspective for more universal video understanding.
 
+## Setup
+
+PLease download the datasets in the official websites. We adopt a unified format for different tasks, please refer to ```tools/generate_omni_json``` to see how to generate the corresponding annotations.
+
 ## Training and Inferene
 
-Will be released soon.
+Please first build the environment following the script ```tools/prepare.sh```. Then use the scripts under ```./run_scripts/omnicaptioner``` to train and evaluate models. The pretrained checkpoints can be found in [huggingface](https://huggingface.co/Daniel0724/omnivid_ckpts).
 
 ## Visualizations
 
